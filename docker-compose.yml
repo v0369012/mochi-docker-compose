@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+        
+        mochi_server:
+         build: .
+         # image: dockerjjz/mochi_20201030
+         ports:
+                 - "3811:3838"
+                 - "8011:80"
+         volumes:
+                 - /data2/jjz/MOCHI_demo_data/:/home/imuser/raw_data/:z
+                 - /data2/jjz/silva_volume:/home/imuser/taxa_database/silva/:rw
+                 - /data2/jjz/greengenes_volume:/home/imuser/taxa_database/greengenes/:rw
+         container_name: mochi_server_20201030
+         
+         environment:
+                 - shiny_port=3811
+                 - nginx_port=8011
+                  
