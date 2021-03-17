@@ -19,6 +19,8 @@ RUN apt-get update -qq && apt-get -y --no-install-recommends install \
   libssl-dev \
   libharfbuzz-dev \
   libfribidi-dev \
+  libgit2-dev \
+ # libv8-dev \
  
  && pip3 install numpy \
  && pip3 install Cython \
@@ -52,6 +54,8 @@ RUN apt-get update -qq && apt-get -y --no-install-recommends install \
   remotes \
   fossil \
   tippy \
+  rlist \
+ # V8 \
        
  && R -e 'devtools::install_github("ropensci/plotly")' \
  && R -e 'devtools::install_github("gregce/ipify")' \
@@ -79,19 +83,38 @@ RUN apt-get -qq update && apt-get -qq -y install curl bzip2 \
     && apt-get autoclean \
     && rm -rf /var/lib/apt/lists/* /var/log/dpkg.log \
     && conda clean --all --yes \
-    && wget https://data.qiime2.org/distro/core/qiime2-2020.8-py36-linux-conda.yml \
-    && conda env create -n qiime2-2020.8 --file qiime2-2020.8-py36-linux-conda.yml \
-    && rm qiime2-2020.8-py36-linux-conda.yml \
+   # && wget https://data.qiime2.org/distro/core/qiime2-2020.8-py36-linux-conda.yml \
+   # && conda env create -n qiime2-2020.8 --file qiime2-2020.8-py36-linux-conda.yml \
+   # && rm qiime2-2020.8-py36-linux-conda.yml \
+    && git clone https://github.com/v0369012/qiime2-2021.2-Pacbio-git.git \
+    && mv ./qiime2-2021.2-Pacbio-git/qiime2-2021.2-Pacbio.yml ./ \
+    && rm -r ./qiime2-2021.2-Pacbio-git \
+    && conda env create -n qiime2-2021.2-Pacbio --file qiime2-2021.2-Pacbio.yml \
+    && rm qiime2-2021.2-Pacbio.yml \
 
- && sed -i 's/run_dada_single.R/\/usr\/local\/envs\/qiime2-2020.8\/bin\/run_dada_single.R/g' /usr/local/envs/qiime2-2020.8/lib/python3.6/site-packages/q2_dada2/_denoise.py \
- && sed -i 's/run_dada_paired.R/\/usr\/local\/envs\/qiime2-2020.8\/bin\/run_dada_paired.R/g' /usr/local/envs/qiime2-2020.8/lib/python3.6/site-packages/q2_dada2/_denoise.py \
+    && git clone https://github.com/sixvable/q2-dada2-CCS.git \
+    && cp ./q2-dada2-CCS/*.py /usr/local/envs/qiime2-2021.2-Pacbio/lib/python3.6/site-packages/q2_dada2/ \
+    && cp ./q2-dada2-CCS/run_dada_ccs.R /usr/local/envs/qiime2-2021.2-Pacbio/bin \
+    && /usr/local/envs/qiime2-2021.2-Pacbio/bin/qiime dev refresh-cache \
+    && rm -r ./q2-dada2-CCS \
+  
+  && apt-get update \
+  && apt-get install -y dos2unix \
+  && dos2unix /usr/local/envs/qiime2-2021.2-Pacbio/bin/run_dada_ccs.R \
+  && chmod 777 /usr/local/envs/qiime2-2021.2-Pacbio/bin/run_dada_ccs.R \
+
+# && sed -i 's/run_dada_single.R/\/usr\/local\/envs\/qiime2-2020.8\/bin\/run_dada_single.R/g' /usr/local/envs/qiime2-2020.8/lib/python3.6/site-packages/q2_dada2/_denoise.py \
+# && sed -i 's/run_dada_paired.R/\/usr\/local\/envs\/qiime2-2020.8\/bin\/run_dada_paired.R/g' /usr/local/envs/qiime2-2020.8/lib/python3.6/site-packages/q2_dada2/_denoise.py \
+  && sed -i 's/run_dada_single.R/\/usr\/local\/envs\/qiime2-2021.2-Pacbio\/bin\/run_dada_single.R/g' /usr/local/envs/qiime2-2021.2-Pacbio/lib/python3.6/site-packages/q2_dada2/_denoise.py \
+  && sed -i 's/run_dada_paired.R/\/usr\/local\/envs\/qiime2-2021.2-Pacbio\/bin\/run_dada_paired.R/g' /usr/local/envs/qiime2-2021.2-Pacbio/lib/python3.6/site-packages/q2_dada2/_denoise.py \
+  && sed -i 's/run_dada_ccs.R/\/usr\/local\/envs\/qiime2-2021.2-Pacbio\/bin\/run_dada_ccs.R/g' /usr/local/envs/qiime2-2021.2-Pacbio/lib/python3.6/site-packages/q2_dada2/_denoise.py \
 
  && cd /home/imuser \
  && git clone https://github.com/v0369012/mochi_imuser.git \
  && cp -r mochi_imuser/* ./ \
  && rm -r mochi_imuser \
  && mkdir qiime_output \
- && mkdir FAPROTAX_output \
+# && mkdir FAPROTAX_output \
 
 # && service nginx start \
 
@@ -109,7 +132,8 @@ RUN apt-get -qq update && apt-get -qq -y install curl bzip2 \
  && cp /home/imuser/ui.R /srv/shiny-server/ \
  && cp /home/imuser/server.R /srv/shiny-server/ \
 
- && sed -i 's/\/home\/imuser\/miniconda3\/envs\/qiime2-2019.10\/bin\/qiime/\/usr\/local\/envs\/qiime2-2020.8\/bin\/qiime/g' /srv/shiny-server/server.R \
+ && sed -i 's/\/home\/imuser\/miniconda3\/envs\/qiime2-2019.10\/bin\/qiime/\/usr\/local\/envs\/qiime2-2021.2-Pacbio\/bin\/qiime/g' /srv/shiny-server/server.R \
+ && sed -i 's/\/home\/imuser\/miniconda3\/envs\/qiime2-2019.10\/bin\/biom/\/usr\/local\/envs\/qiime2-2021.2-Pacbio\/bin\/biom/g' /srv/shiny-server/server.R \
  && chmod -R 777 /home/imuser \
 # && chmod -R 777 /home/imuser/nginx_share \
 # && chown -R shiny:shiny /home/imuser/ \
@@ -120,8 +144,8 @@ RUN apt-get -qq update && apt-get -qq -y install curl bzip2 \
 
 # && echo shiny:shiny | chpasswd
  && sed -i "21i shiny ALL=NOPASSWD: ALL" /etc/sudoers \
- && sed -i 's/\/home\/imuser\/miniconda3\/envs\/qiime2-2019.10\/bin/\/usr\/local\/envs\/qiime2-2020.8\/bin/g' /srv/shiny-server/server.R \ 
- && sed -i 's/\/home\/imuser\/miniconda3\/envs\/python-2.7\/bin\/python2.7/\/usr\/local\/envs\/python-2.7\/bin\/python2.7/g' /srv/shiny-server/server.R \
+ && sed -i 's/\/home\/imuser\/miniconda3\/envs\/qiime2-2020.8\/bin/\/usr\/local\/envs\/qiime2-2021.2-Pacbio\/bin/g' /srv/shiny-server/server.R \
+ && sed -i 's/\/home\/imuser\/miniconda3\/envs\/python-2.7\/bin/\/usr\/local\/envs\/python-2.7\/bin/g' /srv/shiny-server/server.R \ 
 
  && conda create -n python-2.7 python=2.7 -y \
  && /usr/local/envs/python-2.7/bin/python2.7 -m pip install numpy \
@@ -130,6 +154,10 @@ RUN apt-get -qq update && apt-get -qq -y install curl bzip2 \
  #&& apt-get install -y python-numpy \
  #&& apt-get install -y python-biom-format=2.1.7 \
  #&& apt-get install -y python-h5py \
- && mkdir /srv/shiny-srever/www \
+ 
+ && cd /home/imuser/KronaTools-2.7 \
+ && ./install.pl \
+
+ && mkdir /srv/shiny-server/www \
  && cp /home/imuser/www/mochi_title_white.png /srv/shiny-server/www/ \
- && cp /var/www/html/MOCHI_Tutorial_CH_2_Local.pdf /srv/shiny-server/www/ \
+ && cp /var/www/html/MOCHI_Tutorial_Ch_2_Local.pdf /srv/shiny-server/www/ \
