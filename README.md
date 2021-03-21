@@ -1,2 +1,6 @@
-# MOCHI docker file
-The docker file for [MOCHI](https://mochi.life.nctu.edu.tw/).
+# MOCHI file
+## Dockerfile
+The docker file to construct [MOCHI](https://mochi.life.nctu.edu.tw/).
+
+## docker-compose.yml
+The file constains the given arguments for start MOCHI.
